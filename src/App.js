@@ -1,174 +1,27 @@
 import './custom.scss';
 import { Container, Row, Col, Image, Button } from 'react-bootstrap';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
 import ProductComponent from './components/ProductComponent';
+import QuizComponent from './components/QuizComponent';
+import WelcomeComponent from './components/WelcomeComponent';
+import defaultProducts from './productList';
 
 function App() {
 
   const [globalCoords, setGlobalCoords] = useState({x: 0, y: 0});
+  const [products, setProducts] = useState(defaultProducts);
+  const [welcomeScreen, setWelcomeScreen] = useState(true);
+  const [answerPoints, setAnswerPoints] = useState([]);
 
-  const [products, setProducts] = useState({
-    item_1: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_2: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_3: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_4: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_5: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_6: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_7: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_8: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_9: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_10: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_11: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_12: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_13: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_14: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    }
-  });
+  const circleRadiuses = [200, 600, 900];
 
-  const [activeProducts, setActiveProducts] = useState({
-    item_1: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_2: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_3: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_4: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_5: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_6: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_7: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_8: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_9: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_10: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    },
-    item_11: {
-      x: globalCoords.x,
-      y: globalCoords.y,
-    }
-  });
-
-  // const [activeProducts, setActiveProducts] = useState([
-  //   {
-  //     x: globalCoords.x - 500,
-  //     y: globalCoords.y - 50,
-  //   },
-  //   {
-  //     x: globalCoords.x - 900,
-  //     y: globalCoords.y + 400,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   },
-  //   {
-  //     x: globalCoords.x,
-  //     y: globalCoords.y,
-  //   }
-  // ]);
+  const refs = useRef([]);
 
   useEffect(() => {
-    // 👇️ get global mouse coordinates
+
     const handleWindowMouseMove = event => {
       setGlobalCoords({
         x: - (event.screenX - (window.innerWidth / 2)) / 100,
@@ -177,28 +30,113 @@ function App() {
     };
     window.addEventListener('mousemove', handleWindowMouseMove);
 
-    placeOnCircle(400, Math.PI/2, []);
 
+    makeCircles();
     return () => {
       window.removeEventListener('mousemove', handleWindowMouseMove);
     };
   }, []);
 
-  const placeOnCircle = (radius, startAngle, toDelete) => {
+  const handleStart = () => {
 
-    console.log(products);
+    refs.current[1].classList.remove('d-none');
+    refs.current[0].classList.add('hidden');
 
+    setTimeout(() => {
+      refs.current[1].classList.add('visible');
+      refs.current[1].classList.remove('hidden');
+    }, 1000);
+
+    setTimeout(() => {
+      setWelcomeScreen(false);
+    }, 2000)
+
+  }
+
+  const setPoints = (itemsToRecommend, add, questionIndex) => {
+
+    let tempProducts = { ...products };
+    let tempAnswerPoints = [ ...answerPoints ];
+    tempAnswerPoints.push(itemsToRecommend);
+
+    console.log(questionIndex);
+
+      itemsToRecommend.forEach((item, index) => {
+        add ? tempProducts[item].points += 1 : tempProducts[item].points -= 1
+      });
+
+      // console.log('tempProducts: ');
+      // console.log(tempProducts);
+      setProducts(tempProducts);
+      makeCircles();
+
+      setAnswerPoints(tempAnswerPoints);
+  }
+
+  const makeCircles = () => {
+
+    // objs.sort((a,b) => (a.last_nom > b.last_nom) ? 1 : ((b.last_nom > a.last_nom) ? -1 : 0))
+
+    let productsArray = [];
+    // console.log(products);
+    // console.log(products[Object.keys(products)[9]]);
+
+    for (let j=0; j < Object.keys(products).length; j++) {
+      productsArray.push(products[Object.keys(products)[j]]);
+      // console.log(productsArray[j].points);
+      productsArray[productsArray.length - 1].name = Object.keys(products)[j];
+    }
+    // console.log(productsArray);
+    productsArray.sort((a,b) => (a.points > b.points) ? -1 : ((b.points > a.points) ? 1 : 0));
+
+    for (let i=0; i < 3; i++) {
+      productsArray[i].category = 1;
+    }
+    for (let i=3; i < 9; i++) {
+      productsArray[i].category = 2;
+    }
+    for (let i=9; i < productsArray.length - 1; i++) {
+      productsArray[i].category = 3;
+    }
+
+    for (let i=0; i< circleRadiuses.length; i++) {
+      let itemsToRender = [];
+
+      for (let j=0; j < productsArray.length; j++) {
+
+        let currProduct = productsArray[j];
+
+        if (currProduct.category == i+1) {
+          itemsToRender.push(currProduct);
+        }
+      }
+      placeOnCircle(circleRadiuses[i], Math.PI/2, itemsToRender);
+    }
+  }
+
+  const changePositions = (newData) => {
+
+    let tempProducts = { ...products }
+
+    newData.forEach((element, index) => {
+      tempProducts[element.name].category = element.category;
+    })
+
+    setProducts(tempProducts);
+    makeCircles();
+  }
+
+  const placeOnCircle = (radius, startAngle, items) => {
+
+    let newProductsArray = [ ...items ]
     let newProducts = { ...products }
-    toDelete.forEach((item, index) => {
-      delete newProducts[item];
-    });
-
-    const quantity = Object.keys(newProducts).length;
+    const quantity = newProductsArray.length;
     const angleGap = 2*Math.PI / quantity;
 
     let actualAngle = startAngle;
-    // console.log(products);
+
     for(let i=0; i < quantity; i++){
+
       // x^2 + y^2 = radius^2;
       // y = Math.sin(i)*x;
       //
@@ -219,54 +157,33 @@ function App() {
       } else if (actualAngle > .5*Math.PI) {
         x *= -1;
       }
-      newProducts[Object.keys(newProducts)[i]].x = x;
-      newProducts[Object.keys(newProducts)[i]].y = y;
-      // console.log(x + " | " + y + " index: " + index + " | " + products["item_" + index].x + " | " + products["item_" + index].y);
+
+      newProducts[newProductsArray[i].name].x = x;
+      newProducts[newProductsArray[i].name].y = y;
+      // console.log(newProductsArray[i]);
+
       actualAngle += angleGap;
     }
-    //console.log(newProducts);
-    setActiveProducts(newProducts);
-    // setProducts((prev) => ({
-    //   ...prev,
-    //   ["item_" + index]: {
-    //     x: globalCoords.x - x,
-    //     y: globalCoords.y - y
-    //   }
-    // }));
+
+    setProducts(newProducts);
   }
 
   return (
     <>
-    <Container fluid className="p-4 d-flex align-items-center justify-content-center vh-100 bg-light" style={{overflow: 'hidden'}}>
-      <Row className="gy-5 text-white">
-        {Object.keys(activeProducts).map((key, index) => (
+    {welcomeScreen &&
+      <div ref={(e) => { refs.current[0] = e }}>
+        <WelcomeComponent toggle={handleStart}/>
+      </div>
+    }
+    <Container ref={(e) => { refs.current[1] = e }} fluid className="p-4 d-flex align-items-center justify-content-center vh-100 bg-light hidden d-none">
+      <Row className="gy-5">
+        {Object.keys(products).map((key, index) => (
           <Col xs={3} className="d-flex align-items-center justify-content-center" key={'col_' + index}>
-            <ProductComponent key={'product_' + index} data={activeProducts[key]} mousePos={globalCoords} id={index}/>
-            <h4>{activeProducts[key].x}, {activeProducts[key].y}</h4>
+            <ProductComponent key={'product_' + index} data={products[key]} mousePos={globalCoords} id={index}/>
           </Col>
         ))}
       </Row>
-      <Row className="position-absolute bottom-0 start-50 translate-middle-x">
-        <Col>
-          <div className="shadow rounded-3 p-4 px-5 mb-5 text-center bg-white">
-            <Row>
-              <Col>
-                <IoChevronBack />
-              </Col>
-              <Col xs={8}>
-                <p className="fs-5 fw-semibold">{globalCoords.x}, {globalCoords.y}</p>
-              </Col>
-              <Col>
-                <IoChevronForward />
-              </Col>
-            </Row>
-            <Button variant="danger" className="mx-3 p-3 px-5 mt-3" onClick={() => placeOnCircle(200, Math.PI/2, ['item_2', 'item_3'])}>Morskie</Button>
-            <Button variant="light" className="mx-3 p-3 px-5 mt-3" onClick={() => placeOnCircle(300, Math.PI/2, ['item_1', 'item_5', 'item_10', 'item_2'])}>Morskie</Button>
-            <Button variant="light" className="mx-3 p-3 px-5 mt-3" onClick={() => placeOnCircle(400, Math.PI/2, [])}>Morskie</Button>
-            <Button variant="light" className="mx-3 p-3 px-5 mt-3" onClick={() => placeOnCircle(500, Math.PI/2, ['item_2'])}>Morskie</Button>
-          </div>
-        </Col>
-      </Row>
+      <QuizComponent setPoints={setPoints}/>
     </Container>
     </>
   );
